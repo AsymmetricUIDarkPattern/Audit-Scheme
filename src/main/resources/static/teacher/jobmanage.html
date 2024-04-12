@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <link rel="stylesheet" href="../layui/css/bootstrap.css">
+    <link rel="stylesheet" href="../layui/css/personal.css">
+</head>
+<body>
+<div class="layui-form-item">
+    <blockquote class="layui-elem-quote layui-text">
+        诱导界面审计平台
+    </blockquote>
+    <form name="myupload" id="getuser" class="layui-form" action="addjob.html" method="get"
+          style="margin-left: auto;margin-right: auto;text-align: center">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">科目类别：</label>
+                <div class="layui-input-block">
+                    <select name="lesson" id="lesson" lay-filter="lessonname">
+                        <option value=""></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="layui-upload">
+
+            <button class="layui-btn">创建作业</button>
+        </div>
+
+    </form>
+
+
+    <div class="larry-personal-body clearfix">
+        <table class="layui-hide" id="demo" lay-filter="demo"></table>
+    </div>
+</div>
+
+</body>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script type="text/javascript" src="../layui/layui.js"></script>
+<script type="text/javascript" src="../layui/jquery-2.2.1.min.js"></script>
+<script type="text/javascript">
+    //重新渲染
+    function renderForm() {
+        layui.use('form', function () {
+            var form = layui.form;//高版本建议把括号去掉，有的低版本，需要加()
+            form.render();
+        });
+    }
+
+    function filllesson(json) {
+        $("#lesson").empty();
+        for (var i = 0; i < json.length; i++) {
+            $("#lesson").append(" <option value=\"" + json[i].id + "\">" + json[i].coursename + "</option>");
+            console.log(json[i].title)
+        }
+        renderForm();
+    }
+
+    function getjob() {
+        layui.use('table', function () {
+            var table = layui.table;//高版本建议把括号去掉，有的低版本，需要加()
+            table.render({
+                elem: '#demo'
+                , url: 'getjobbyteachclaid2' //数据接口
+                , where: {'teacherclaid': $("#lesson").val()}
+                , page: false //开启分页
+                , toolbar: '#toolbarDemo'
+                , cols: [[ //表头
+                    {field: 'id', title: 'ID', sort: true, fixed: 'left', width: 80, hide: 'true'}
+                    , {field: 'teachclassid', title: '班号', width: 80, hide: 'true'}
+                    , {field: 'no', title: '序号(实验no)', edit: 'text'}
+                    , {field: 'title', title: '实验名', edit: 'text'}
+                    , {field: 'duedate', title: '截至日期', sort: true, edit: 'text'}
+                    , {field: 'note', title: '备注', edit: 'text', edit: 'text'}
+                    , {field: 'createtime', title: '创建时间', sort: true}
+                    , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150}
+                ]]
+            });
+            //头工具栏事件
+
+            //监听单元格编辑
+            table.on('edit(demo)', function (obj) {
+                var value = obj.value //得到修改后的值
+                    , data = obj.data //得到所在行所有键值
+                    , fieldva = obj.field; //得到字段
+                console.log(data)
+                console.log('[ID: ' + data.scoreid + '] ' + fieldva + ' 字段更改为：' + value);
+
+                $.ajax({
+                    url: "updatejobbyteachclaid",
+                    data: {
+                        'ID': data.id,
+                        'no': data.no,
+                        'type': data.type,
+                        'note': data.note,
+                        'duedate': data.duedate,
+                        'title': data.title,
+                    },
+
+                    method: 'POST',
+                    success: function (msg) {
+                        layer.msg(msg)
+                    },
+                    error: function (msg) {
+                        layer.msg(msg)
+                    }
+
+                })
+            });
+            table.on('tool(demo)', function (obj) {
+                var data = obj.data;
+                console.log(obj)
+                if (obj.event === 'del') {
+                    layer.confirm('真的删除行么', function (index) {
+                        $.ajax({
+                            url: 'deletejobbyid',
+                            data: {
+                                'id': data.id,
+                            },
+                            method: 'POST',
+                            traditional: true,
+                            success: function (msg) {
+                                layer.msg(msg);
+                                obj.del();
+                            },
+                            error: function (msg) {
+                                layer.msg(msg)
+                            }
+                        })
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'edit') {
+                    layer.msg(JSON.stringify("您可以直接单击单元格进行编辑"))
+                }
+            });
+        });
+
+    }
+
+    function getteachclass() {
+        // $("#lessonname").empty();
+        var id = $("#lesson").val();
+        $.ajax({
+            url: "getteacherclassthisterm",
+            type: "GET",
+            traditional: true,//这里设置为true
+            success: function (data) {
+                //do sth...
+                filllesson(data);
+                getjob();
+            }
+        });
+    }
+
+    getteachclass();
+
+    layui.use(['form', 'layedit', 'laydate', 'table'], function () {
+        var form = layui.form
+            , layer = layui.layer
+            , layedit = layui.layedit
+            , table = layui.table
+            , laydate = layui.laydate;
+        form.on('select(lessonname)', function (data) {
+            getjob();
+        });
+    })
+</script>
+</html>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.submit.dao.apkMapper" >
+    <!--结果集映射，type就是要映射的对象-->
+    <resultMap id="ApkInfoMap" type="ApkInfo">
+        <!--column数据库中的字段，property实体类中的属性-->
+        <result column="user_id" property="userId"/>
+        <result column="submit_hash" property="submitHash"/>
+        <result column="package_name" property="packageName"/>
+        <result column="app_name" property="appName"/>
+        <result column="app_version" property="appVersion"/>
+        <result column="submit_time" property="submitTime"/>
+        <result column="size" property="size"/>
+        <result column="status" property="status"/>
+        <result column="icon_file_name" property="iconWebPath"/>
+    </resultMap>
+    <resultMap id="AuditRetMap" type="AuditRet">
+        <!--column数据库中的字段，property实体类中的属性-->
+        <result column="user_id" property="userId"/>
+        <result column="submit_hash" property="submitHash"/>
+        <result column="type" property="type"/>
+        <result column="activity_name" property="activityName"/>
+        <result column="screenshot" property="screenshotPath"/>
+    </resultMap>
+    <select id="getAuditRet" resultMap="AuditRetMap" parameterType="java.lang.String">
+        SELECT user_id, submit_hash, b.type_name as type, activity_name, screenshot
+        FROM gosec_app_audit.audit_info as a, gosec_app_audit.UI_type as b
+        where a.submit_hash = #{submitHash} and a.type=b.id;
+    </select>
+    <select id="getApkFile" resultMap="ApkInfoMap" parameterType="java.lang.String">
+        /*定义sql*/
+        select * from app_info where user_id = #{userId};
+    </select>
+    <select id="getAllApkFile" resultMap="ApkInfoMap" parameterType="java.lang.String">
+        /*定义sql*/
+        select * from app_info;
+    </select>
+    <select id="getapkfileByPackageName" resultMap="ApkInfoMap" parameterType="java.lang.String">
+        /*定义sql*/
+        select * from app_info where package_name = #{packageName};
+    </select>
+
+</mapper>

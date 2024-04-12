@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+
+    <title>诱导界面审计平台</title>
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <link rel="stylesheet" href="../layui/css/bootstrap.css">
+    <link rel="stylesheet" href="../layui/css/personal.css">
+    <script src="../js/echarts.common.min.js"></script>
+</head>
+<body>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+    <legend>应用审计</legend>
+</fieldset>
+<style type="text/css">
+    .container {
+        width: 80%;
+        height: 200px;
+        margin: auto;
+        padding: 10px;
+    }
+
+    .one {
+        width: 30%;
+        height: 200px;
+        float: left;
+    }
+
+    .two {
+        margin-left: 30%;
+        height: 150px;
+    }
+
+</style>
+<div class="larry-personal">
+    <div class="container">
+        <div class="one modal-body form ">
+            <form id="dialogForm" class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-md-3 col-sm-3 col-xs-3 control-label">应用选择:
+                    </label>
+                    <div class="col-md-7 col-sm-7  col-xs-7">
+                        <input type="file" name="file" id="file">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-3 col-sm-3  col-xs-3 control-label">上传进度:
+                    </label>
+                    <div class="col-md-7 col-sm-7  col-xs-7">
+                        <div class="progress-body">
+                            <span style="display: inline-block; text-align: right"></span>
+                            <progress></progress>
+                            <percentage>0%</percentage>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-3 col-sm-3 col-xs-3 control-label"></label>
+                    <div class="col-md-7 col-sm-7  col-xs-7">
+                        <button type="button" class="btn blue" id="addBtn"
+                                style="background: #33A7FF; color: #fff">提交
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="two" id="bincake" style="width: 350px;height:170px;"></div>
+    </div>
+    <div class="three">
+        <div><span>&nbsp;&nbsp;&nbsp;</span></div>
+        <div><span>*ps:审核共分4各阶段：</span></div>
+        <div><span>1. under_download:&nbsp;应用自动安装中</span></div>
+        <div><span>2. under_manual:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应用人工登录授权中</span></div>
+        <div><span>3. under_audit:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应用自动审核中</span></div>
+        <div><span>3. done:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;应用审核完成</span>
+        </div>
+    </div>
+
+    <div class="larry-personal-body clearfix">
+        <!--            UI填充造成视觉的效果！-->
+    </div>
+    <div class="larry-personal-body clearfix">
+        <table class="layui-hide" id="classfile" lay-filter="classfile"></table>
+    </div>
+</div>
+</body>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckData">右侧进行筛选导出</button>
+    </div>
+</script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="del_app">删除</a>
+    <!--    <a class="layui-btn layui-btn-xs" lay-event="sent_download">发送</a>-->
+</script>
+<script type="text/html" id="imgTpl">
+    <img src="..\{{d.iconWebPath}}" style="width: 30px; height: 30px;"/>
+    <span>{{d.appName}}</span>
+    <!--    <img src="../icon/gO9jHWkfwb.png">-->
+</script>
+<style type="text/css">
+    .layui-table-cell {
+        height: auto !important;
+        white-space: normal;
+    }
+</style>
+
+<script type="text/javascript" src="../layui/layui.js"></script>
+<script type="text/javascript" src="../layui/jquery-2.2.1.min.js"></script>
+<script>
+
+    // 添加内容
+    $("#addBtn").click(function () {
+        // 验证文件内容
+        var file = $("#file")[0].files[0];
+        if (!file.name.endsWith(".apk")) {
+            alert("请选择.apk文件");
+            return;
+        }
+        // 上传
+        doIt()
+    });
+
+    function change_bincake() {
+        $.ajax({
+            url: "getappaudittype",
+            type: "GET",
+            processData: false, // 告诉jQuery不要去处理发送的数据
+            contentType: false, // 告诉jQuery不要去设置Content-Type请求头
+            success: function (data) {
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('bincake'));
+                // 接收Map集合
+                var bin_arr = []
+                for (var key in data) {
+                    var tmp = {value: data[key], name: key}
+                    bin_arr.push(tmp)
+                }
+                myChart.setOption({
+                    series: [
+                        {
+                            name: '访问来源',
+                            type: 'pie',    // 设置图表类型为饼图
+                            radius: '55%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
+                            title: {
+                                text: '这是标题',
+                                textStyle: {
+                                    fontSize: 18 // 设置标题字体大小
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    shadowBlur: 200,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            },
+                            data: bin_arr
+                            //     [          // 数据数组，name 为数据项名称，value 为数据项值
+                            //     {value: 235, name: '视频广告'},
+                            // ]
+                        }
+                    ]
+                })
+            },
+        });
+    }
+
+    function doIt() {
+        console.log(file.name)
+        var formData = new FormData();
+        formData.append("file", $("#file")[0].files[0]);
+        console.log('apk', $("#file")[0].files[0])
+        console.log('apk type', (typeof $("#file")[0].files[0]))
+        $.ajax({
+            contentType: "multipart/form-data",
+            url: "/user/upload_apk_pro",
+            type: "POST",
+            data: formData,
+            processData: false, // 告诉jQuery不要去处理发送的数据
+            contentType: false, // 告诉jQuery不要去设置Content-Type请求头
+            success: function (data) {
+                $("#appUrl").val(data); // 保存文件路径
+            },
+            xhr: function () {
+                var xhr = $.ajaxSettings.xhr();
+                if (xhr.upload) {
+                    //处理进度条的事件
+                    xhr.upload.addEventListener("progress", progressHandle,
+                        false);
+                    //加载完成的事件
+                    xhr.addEventListener("load", completeHandle, false);
+                    //加载出错的事件
+                    xhr.addEventListener("error", failedHandle, false);
+                    return xhr;
+                }
+            }
+        });
+    }
+
+    //进度条更新
+    function progressHandle(e) {
+        $('.progress-body progress').attr({
+            value: e.loaded,
+            max: e.total
+        });
+        var percent = e.loaded / e.total * 100;
+        $('.progress-body percentage').html(percent.toFixed(2) + "%");
+    };
+
+    //上传完成处理函数
+    function completeHandle(e) {
+        console.log("上传完成");
+        showapkfile();
+    };
+
+    //上传出错处理函数
+    function failedHandle(e) {
+        console.log("上传失败");
+    };
+
+    //重新渲染
+    function renderForm() {
+        layui.use('form', function () {
+            var form = layui.form;//高版本建议把括号去掉，有的低版本，需要加()
+            form.render();
+        });
+    }
+
+    // 展示课程
+    function showapkfile() {
+        layui.use('table', function () {
+            var table = layui.table;//高版本建议把括号去掉，有的低版本，需要加()
+            table.render({
+                elem: '#classfile'
+                , url: 'getapkfile' //数据接口
+                , page: false //开启分页
+                , title: '学生信息'
+                , toolbar: '#toolbarDemo'
+                , initSort: {
+                    field: 'submitTime',
+                    type: 'desc',
+                }
+                , cols: [[ //表头
+                    {field: 'id', title: 'id', hide: 'true'}
+                    , {field: 'userId', title: '用户id'}
+                    , {field: 'submitHash', title: '提交hash'}
+                    , {field: 'app', title: 'app', templet: '#imgTpl', align: "center"}
+                    // , {field: 'appName', title: 'app'}
+                    , {field: 'packageName', title: '包名'}
+                    , {field: 'appVersion', title: '版本'}
+                    , {field: 'submitTime', title: '上传时间'}
+                    , {field: 'size', title: '大小(mb)'}
+                    // , {field: 'status', title: '审核状态'}
+                    , {
+                        field: 'status', title: '审核状态', width: 200, templet: function (d) {
+                            console.log('')
+                            var status, level
+                            var submitHash = d.submitHash
+                            if (d.status.endsWith("#1")) {
+                                status = d.status.substr(0, d.status.length - 2)
+                                level = 1
+                            } else {
+                                status = d.status
+                                level = 0;
+                            }
+                            if (status === 'under_download') return '<span style="color: #F41010;">' + status + '</span>'
+                            else if (status === 'under_manual') {
+                                return '<span style="color: #33A7FF;" id="' + submitHash + '_span">' + status + '&nbsp;&nbsp;</span>' +
+                                    '<button onclick="change2under_audit(this)" type="button" id="' + submitHash + '_btn" class="btn layui-bg-green"\n' +
+                                    ' style="background: #33A7FF; color: #fff">安装完毕\n' +
+                                    ' </button>'
+                            } else if (status === 'under_audit') return '<span style="color: #D220E0;">' + status + '</span>'
+                            else if (status === 'done') return '<span style="color: #2BB101;">' + status + '</span>'
+                            else
+                                return '<span style="color: #000033;">' + status + '</span>'
+                        }
+                    }
+                    , {fixed: 'right', title: '操作', toolbar: '#barDemo'}
+                ]]
+            });
+            table.on('tool(classfile)', function (obj) {
+                var data = obj.data;
+                console.log(obj)
+                if (obj.event === 'del_app') {
+                    layer.confirm('确定不审计该应用吗', function (index) {
+                        $.ajax({
+                            url: 'deleteapkbysubmithash',
+                            data: {
+                                'package_name': data.packageName,
+                            },
+                            method: 'POST',
+                            traditional: true,
+                            success: function (msg) {
+                                layer.msg(msg);
+                                obj.del();
+                            },
+                            error: function (msg) {
+                                layer.msg(msg)
+                            }
+                        })
+                        layer.close(index);
+                    });
+                } else if (obj.event === 'sent_download') {
+                    $.ajax({
+                        url: 'http://172.16.108.78:4876/install_app/?hash=aaaa',
+                        method: 'GET',
+                        processData: false, // 告诉jQuery不要去处理发送的数据
+                        contentType: false, // 告诉jQuery不要去设置Content-Type请求头
+                        success: function (msg) {
+                            layer.msg(msg);
+                        },
+                        error: function (msg) {
+                            layer.msg(msg)
+                        }
+                    })
+                }
+            });
+        });
+    }
+
+
+    function change2under_audit(obj) {
+        // obj.hidden = true
+        var obj_id = obj.id
+
+        var arr = obj_id.split('_');
+        var submit_hash = arr[0]
+        var span_obj = document.getElementById(submit_hash + "_span");
+
+        var formData = new FormData();
+        formData.append("submit_hash", submit_hash);
+        $.ajax({
+            url: "change2under_audit",
+            type: "POST",
+            data: formData,
+            contentType: false,       //一定要写
+            processData: false,       //一定要写
+            traditional: true,//这里设置为true
+            success: function (data) {
+                //do sth...
+                span_obj.innerHTML = data
+                span_obj.style = "color: #D220E0;"
+                obj.style.display = "none";
+            }
+        });
+    }
+
+    layui.use(['form', 'layedit', 'laydate', 'table', 'upload'], function () {
+
+    })
+
+    // 初始化调用渲染
+    showapkfile();
+    change_bincake();
+
+
+</script>
+</html>

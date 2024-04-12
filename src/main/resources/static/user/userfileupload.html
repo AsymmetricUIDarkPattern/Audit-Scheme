@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+
+    <title>诱导界面审计平台</title>
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <link rel="stylesheet" href="../layui/css/bootstrap.css">
+    <link rel="stylesheet" href="../layui/css/personal.css">
+    <script src="../js/echarts.common.min.js"></script>
+    <style>
+        .progress {
+            /*width: 1000px;*/
+            width: 100%;
+            height: 20px;
+            border: 1px solid #000;
+            margin: 10px;
+        }
+
+        .progress > div {
+            width: 0%;
+            height: 100%;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+    <legend>应用上传</legend>
+</fieldset>
+<form class="layui-form" style="margin-left: auto;margin-right: auto;text-align: center">
+    <div class="form-group layui-upload-drag" id="chooseFile"
+         style="margin-left: auto;margin-right: auto;text-align: center">
+        <i class="layui-icon"></i>
+        <p>点击上传apk文件</p>
+        <!--        <input type="file" name="apkfile" id="apkfile" type="hidden">-->
+        <!--        <input type="text" name="file_name" id="apk_file">-->
+        <p id="file_name" style="font-weight:bold;"></p>
+    </div>
+    <div class="layui-progress layui-progress-big" lay-showPercent="yes" lay-filter="progress-apkupload">
+        <div class="layui-progress-bar layui-bg-green" lay-percent="0%"></div>
+    </div>
+</form>
+</body>
+
+<script type="text/javascript" src="../layui/layui.js"></script>
+<script type="text/javascript" src="../layui/jquery-2.2.1.min.js"></script>
+<script>
+
+    layui.use(['upload', 'element', 'layer'], function () {
+        var $ = layui.jquery
+            , upload = layui.upload
+            , element = layui.element
+            , layer = layui.layer;
+
+        upload.render({
+            elem: '#chooseFile'
+            , url: "/user/upload_apk_pro"
+            , auto: true
+            , accept: 'file'
+            , exist: "apk"
+            , choose: function (obj) {
+                obj.preview(function (index, file, result) {
+                    var file_name_p = document.getElementById("file_name")
+                    file_name_p.innerText = file.name;
+                    element.render('progress'); //渲染新加的进度条组件
+                });
+            }, progress: function (n, elem, e) { //注意：index 参数为 layui 2.6.6 新增
+                element.progress('progress-apkupload', n + '%'); //执行进度条。n 即为返回的进度百分比
+            }, done: function (res, index, upload) {
+                layer.msg(res.msg)
+            }, 
+        });
+
+    })
+
+</script>
+</html>

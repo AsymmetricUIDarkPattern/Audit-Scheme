@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+
+    <title>个人信息</title>
+
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <link rel="stylesheet" href="../layui/css/bootstrap.css">
+    <link rel="stylesheet" href="../layui/css/personal.css">
+
+</head>
+<body>
+<section class="layui-larry-box">
+    <div class="larry-personal">
+        <blockquote class="layui-elem-quote layui-text">
+            <!--<header class="larry-personal-tit">-->
+                <span>添加课程</span>
+            <!--</header>&lt;!&ndash; /header &ndash;&gt;-->
+        </blockquote>
+        <form class="layui-form col-lg-5 " action="" method="post">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">课程号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="teachclassno"  autocomplete="off" class="layui-input" placeholder="19090173a-1" >
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">课程名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="coursename"  autocomplete="off" class="layui-input" placeholder="c++" >
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">学期</label>
+                <div class="layui-input-block">
+                    <input type="text" name="coursesemester"  autocomplete="off" class="layui-input"  placeholder="2018-2019-1（2018-2019-学年）">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">学分</label>
+                <div class="layui-input-block">
+                    <input type="text" name="credit"  autocomplete="off" class="layui-input" placeholder="3">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">考察方式</label>
+                <div class="layui-input-block">
+                    <input type="text" name="evalmethod"  autocomplete="off" class="layui-input" placeholder="考试+平时作业">
+                </div>
+            </div>
+            <p  id="hint"  style="color: red" align="center"></p>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button  class="layui-btn" lay-submit lay-filter="formDemo">添加</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+        <div class="larry-personal-body clearfix">
+        </div>
+
+    </div>
+</section>
+
+<script type="text/javascript" src="../layui/layui.js"></script>
+<script type="text/javascript" src="../layui/jquery-2.2.1.min.js"></script>
+<script type="text/javascript" src="../js/jquery.cookie.js"></script>
+<script type="text/javascript">
+    layui.use(['form','upload','layedit','laydate','table'],function(){
+        var form = layui.form
+            ,layer = layui.layer
+            ,layedit = layui.layedit
+            ,table=layui.table
+            ,laydate = layui.laydate;
+        form.on('submit(formDemo)', function(data){
+            //执行实例
+            layer.confirm('真的添加？', function(index){
+                $.post("addtechclass",data.field,function(res){
+                    layer.msg(JSON.stringify(res));
+                    $("#hint").html(res);
+                });
+                layer.close(index);
+                //向服务端发送删除指令
+            });
+
+            return false;
+        });
+
+
+    });
+
+    function funchange(obj) {//修改花名册排名
+//页面层
+        var stuclaid=$(obj).attr('stuclaid');
+        $.cookie('stuclaid', stuclaid);
+
+        layer.prompt({
+            formType: 3,
+            value: '',
+            title: '编号',
+            area: ['300px', '200px'] //自定义文本域宽高
+        }, function (value, index, elem) {
+
+            var data1={
+                'stuclaid':$.cookie('stuclaid'),
+                'num':value,
+            };
+            console.log(data1);
+            $.post("teacher/updatestuclaid",data1,function(res){
+                layer.msg(JSON.stringify(res));
+
+                window.location.reload();
+            });
+            layer.close(index);
+        });
+
+    }
+    //真的添加？
+    function alertcheckadd(obj) {
+        layer.confirm('真的添加课程么', function(index){
+            addinfo(obj);
+            layer.close(index);
+            //向服务端发送删除指令
+        });
+    }
+    //真的删除？
+    function alertcheckdelete(obj) {
+        layer.confirm('真的删除行么', function(index){
+           deleteinfo(obj);
+            layer.close(index);
+            //向服务端发送删除指令
+        });
+    }
+
+</script>
+</body>
+</html>
